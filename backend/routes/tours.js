@@ -1,33 +1,38 @@
 import express from "express";
-import Tour from "../models/Tour.js"; // Make sure this exists and is exported properly
+import { 
+  getTours, 
+  getTourById, 
+  createTour, 
+  addReview, 
+  getCategories, 
+  getCities 
+} from "../controllers/tourController.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// @desc   Get all tours
+// @desc   Get all tours with filtering
 // @route  GET /api/tours
-router.get("/", async (req, res) => {
-  try {
-    const tours = await Tour.find();
-    res.status(200).json(tours);
-  } catch (error) {
-    console.error("Error fetching tours:", error.message);
-    res.status(500).json({ error: "Failed to fetch tours" });
-  }
-});
+router.get("/", getTours);
+
+// @desc   Get tour categories
+// @route  GET /api/tours/categories
+router.get("/categories", getCategories);
+
+// @desc   Get tour cities
+// @route  GET /api/tours/cities
+router.get("/cities", getCities);
 
 // @desc   Get single tour by ID
 // @route  GET /api/tours/:id
-router.get("/:id", async (req, res) => {
-  try {
-    const tour = await Tour.findById(req.params.id);
-    if (!tour) {
-      return res.status(404).json({ error: "Tour not found" });
-    }
-    res.status(200).json(tour);
-  } catch (error) {
-    console.error("Error fetching tour:", error.message);
-    res.status(500).json({ error: "Failed to fetch tour" });
-  }
-});
+router.get("/:id", getTourById);
+
+// @desc   Create a new tour (protected route)
+// @route  POST /api/tours
+router.post("/", protect, createTour);
+
+// @desc   Add review to tour (protected route)
+// @route  POST /api/tours/:tourId/reviews
+router.post("/:tourId/reviews", protect, addReview);
 
 export default router;
