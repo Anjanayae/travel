@@ -7,6 +7,13 @@ const TourDetails = () => {
   const { user } = useAuth();
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    numberOfPeople: 1,
+    bookingDate: '',
+    specialRequests: ''
+  });
+  const [submittingBooking, setSubmittingBooking] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -27,13 +34,16 @@ const TourDetails = () => {
     }
   };
 
-  const handleBooking = async () => {
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
     const token = localStorage.getItem("token");
 
     if (!token) {
       alert("You need to be logged in to book!");
       return;
     }
+
+    setSubmittingBooking(true);
 
     try {
       const res = await fetch("http://localhost:5000/api/bookings", {
@@ -42,19 +52,26 @@ const TourDetails = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ tourId: tour._id }),
+        body: JSON.stringify({
+          tourId: tour._id,
+          ...bookingData
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        alert(data.message || "Booking successful!");
+        alert(data.message || "Booking request submitted! Please wait for confirmation from the tour operator.");
+        setShowBookingModal(false);
+        setBookingData({ numberOfPeople: 1, bookingDate: '', specialRequests: '' });
       } else {
-        alert(data.message || "Booking failed.");
+        alert(data.error || "Booking failed.");
       }
     } catch (err) {
       console.error("Booking error:", err);
       alert("Something went wrong.");
+    } finally {
+      setSubmittingBooking(false);
     }
   };
 
@@ -85,7 +102,7 @@ const TourDetails = () => {
         alert("Review added successfully!");
         setShowReviewForm(false);
         setReviewData({ rating: 5, comment: '' });
-        fetchTour(); // Refresh tour data to show new review
+        fetchTour();
       } else {
         alert(data.error || "Failed to add review.");
       }
@@ -136,13 +153,13 @@ const TourDetails = () => {
     </div>
   );
 
+  const totalPrice = tour.price * bookingData.numberOfPeople;
   const userAlreadyReviewed = tour.reviews?.some(
     review => review.userId === user?._id
   );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
-      {/* Hero Section */}
       <div className="relative mb-8">
         <img 
           src={tour.photo} 
@@ -164,11 +181,9 @@ const TourDetails = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2">
           <h1 className="text-4xl font-bold text-primary mb-4">{tour.title}</h1>
           
-          {/* Location and Rating */}
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <div className="flex items-center gap-2 text-gray-600">
               <span className="text-xl">📍</span>
@@ -181,13 +196,12 @@ const TourDetails = () => {
                   {renderStars(tour.avgRating)}
                 </div>
                 <span className="text-lg font-semibold text-gray-700">
-                  {tour.avgRating.toFixed(1)} ({tour.totalReviews} review{tour.totalReviews !== 1 ? 's' : ''})
+                  {tour.avgRating.toFixed(1)} ({tour.totalReviews} reviews)
                 </span>
               </div>
             )}
           </div>
 
-          {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="stat bg-base-200 rounded-lg p-4 text-center">
               <div className="stat-title text-sm">Duration</div>
@@ -212,13 +226,11 @@ const TourDetails = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div className="mb-8">
             <h3 className="text-2xl font-bold mb-4">About This Tour</h3>
             <p className="text-gray-700 text-lg leading-relaxed">{tour.desc}</p>
           </div>
 
-          {/* Includes & Excludes */}
           {(tour.includes?.length > 0 || tour.excludes?.length > 0) && (
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               {tour.includes?.length > 0 && (
@@ -255,7 +267,6 @@ const TourDetails = () => {
             </div>
           )}
 
-          {/* Tags */}
           {tour.tags?.length > 0 && (
             <div className="mb-8">
               <h4 className="text-xl font-bold mb-4">Tags</h4>
@@ -270,7 +281,6 @@ const TourDetails = () => {
           )}
         </div>
 
-        {/* Booking Sidebar */}
         <div className="lg:col-span-1">
           <div className="card bg-white shadow-xl sticky top-8">
             <div className="card-body">
@@ -282,7 +292,7 @@ const TourDetails = () => {
               </div>
 
               <button 
-                onClick={handleBooking} 
+                onClick={() => user ? setShowBookingModal(true) : alert("Please login to book")}
                 className="btn btn-primary btn-lg w-full mb-4 hover:btn-primary-focus"
               >
                 🎫 Book This Tour
@@ -325,7 +335,6 @@ const TourDetails = () => {
           )}
         </div>
 
-        {/* Review Form */}
         {showReviewForm && (
           <div className="bg-base-200 p-6 rounded-lg mb-8">
             <form onSubmit={handleReviewSubmit}>
@@ -373,7 +382,6 @@ const TourDetails = () => {
           </div>
         )}
 
-        {/* Reviews List */}
         {tour.reviews?.length > 0 ? (
           <div className="space-y-6">
             {tour.reviews.map((review, index) => (
@@ -403,6 +411,98 @@ const TourDetails = () => {
           </div>
         )}
       </div>
+
+      {showBookingModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-2xl mb-4">📋 Book {tour.title}</h3>
+            <form onSubmit={handleBookingSubmit}>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text font-semibold">Number of People *</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={tour.maxGroupSize}
+                  className="input input-bordered"
+                  value={bookingData.numberOfPeople}
+                  onChange={(e) => setBookingData({...bookingData, numberOfPeople: parseInt(e.target.value)})}
+                  required
+                />
+                <label className="label">
+                  <span className="label-text-alt">Max {tour.maxGroupSize} people</span>
+                </label>
+              </div>
+
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text font-semibold">Preferred Date *</span>
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered"
+                  value={bookingData.bookingDate}
+                  onChange={(e) => setBookingData({...bookingData, bookingDate: e.target.value})}
+                  min={new Date().toISOString().split('T')[0]}
+                  required
+                />
+              </div>
+
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text font-semibold">Special Requests (Optional)</span>
+                </label>
+                <textarea
+                  className="textarea textarea-bordered"
+                  placeholder="Any special requirements or requests..."
+                  value={bookingData.specialRequests}
+                  onChange={(e) => setBookingData({...bookingData, specialRequests: e.target.value})}
+                />
+              </div>
+
+              <div className="bg-base-200 p-4 rounded-lg mb-4">
+                <div className="flex justify-between mb-2">
+                  <span>Price per person:</span>
+                  <span className="font-semibold">₹{tour.price.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Number of people:</span>
+                  <span className="font-semibold">× {bookingData.numberOfPeople}</span>
+                </div>
+                <div className="divider my-2"></div>
+                <div className="flex justify-between text-lg">
+                  <span className="font-bold">Total Amount:</span>
+                  <span className="font-bold text-success">₹{totalPrice.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="alert alert-info mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span className="text-sm">Your booking will be sent for review. You'll be notified once confirmed.</span>
+              </div>
+
+              <div className="modal-action">
+                <button
+                  type="submit"
+                  className={`btn btn-primary ${submittingBooking ? 'loading' : ''}`}
+                  disabled={submittingBooking}
+                >
+                  {submittingBooking ? 'Submitting...' : '🚀 Submit Booking Request'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBookingModal(false)}
+                  className="btn"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowBookingModal(false)}></div>
+        </div>
+      )}
     </div>
   );
 };

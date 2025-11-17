@@ -196,7 +196,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-base-200 transition duration-200 font-medium"
                 >
-                  🔑 Login
+                  🔑 Traveller Login
                 </Link>
                 <Link
                   to="/register"
@@ -204,6 +204,14 @@ const Navbar = () => {
                   className="block px-4 py-3 rounded-lg bg-primary text-white hover:bg-primary-focus transition duration-200 font-medium"
                 >
                   ✨ Sign Up
+                </Link>
+                <div className="divider my-1"></div>
+                <Link
+                  to="/business/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-4 py-3 rounded-lg bg-secondary text-white hover:bg-secondary-focus transition duration-200 font-medium"
+                >
+                  🏢 Business Login
                 </Link>
               </div>
             )}

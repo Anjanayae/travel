@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const tourSchema = new mongoose.Schema({
+  businessId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+    required: true
+  },
   title: {
     type: String,
     required: true,
@@ -9,6 +14,11 @@ const tourSchema = new mongoose.Schema({
   city: {
     type: String,
     required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+    default: 'India'
   },
   address: {
     type: String,
@@ -37,7 +47,7 @@ const tourSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Adventure', 'Beach', 'Cultural', 'Historical', 'Nature', 'Urban', 'Religious', 'Mountain', 'Desert', 'Wildlife']
+    enum: ['Adventure', 'Beach', 'Cultural', 'Historical', 'Nature', 'Urban', 'Religious', 'Mountain', 'Desert', 'Wildlife', 'Luxury']
   },
   duration: {
     type: String,
@@ -49,6 +59,9 @@ const tourSchema = new mongoose.Schema({
     enum: ['Easy', 'Moderate', 'Challenging'],
     default: 'Easy'
   },
+  availableDates: [{
+    type: Date
+  }],
   includes: [{
     type: String
   }],
@@ -95,6 +108,10 @@ const tourSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
   available: {
     type: Boolean,
     default: true
@@ -107,7 +124,6 @@ const tourSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-// Update totalReviews before saving
 tourSchema.pre('save', function(next) {
   if (this.reviews) {
     this.totalReviews = this.reviews.length;

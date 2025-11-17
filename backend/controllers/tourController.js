@@ -1,6 +1,5 @@
 import Tour from "../models/Tour.js";
 
-// Get all tours with filtering, search, and pagination
 export const getTours = async (req, res) => {
   try {
     const { 
@@ -14,8 +13,7 @@ export const getTours = async (req, res) => {
       limit = 9 
     } = req.query;
 
-    // Build filter object
-    const filter = {};
+    const filter = { isActive: true };
     
     if (city) filter.city = { $regex: city, $options: 'i' };
     if (category) filter.category = category;
@@ -55,10 +53,9 @@ export const getTours = async (req, res) => {
   }
 };
 
-// Get single tour by ID
 export const getTourById = async (req, res) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    const tour = await Tour.findById(req.params.id).populate('businessId', 'businessName phone email');
     if (!tour) return res.status(404).json({ error: "Tour not found" });
     res.status(200).json(tour);
   } catch (err) {
@@ -66,7 +63,6 @@ export const getTourById = async (req, res) => {
   }
 };
 
-// Add a new tour (admin only)
 export const createTour = async (req, res) => {
   try {
     const newTour = new Tour(req.body);
@@ -77,7 +73,6 @@ export const createTour = async (req, res) => {
   }
 };
 
-// Add review to tour
 export const addReview = async (req, res) => {
   try {
     const { tourId } = req.params;
@@ -88,7 +83,6 @@ export const addReview = async (req, res) => {
     const tour = await Tour.findById(tourId);
     if (!tour) return res.status(404).json({ error: "Tour not found" });
 
-    // Check if user already reviewed this tour
     const existingReview = tour.reviews.find(
       review => review.userId && review.userId.toString() === userId.toString()
     );
@@ -97,7 +91,6 @@ export const addReview = async (req, res) => {
       return res.status(400).json({ error: "You have already reviewed this tour" });
     }
 
-    // Add new review
     tour.reviews.push({
       userId,
       name: userName,
@@ -106,7 +99,6 @@ export const addReview = async (req, res) => {
       createdAt: new Date()
     });
 
-    // Calculate average rating
     const totalRating = tour.reviews.reduce((sum, review) => sum + review.rating, 0);
     tour.avgRating = totalRating / tour.reviews.length;
 
@@ -117,7 +109,6 @@ export const addReview = async (req, res) => {
   }
 };
 
-// Get tour categories
 export const getCategories = async (req, res) => {
   try {
     const categories = await Tour.distinct('category');
@@ -127,7 +118,6 @@ export const getCategories = async (req, res) => {
   }
 };
 
-// Get tour cities
 export const getCities = async (req, res) => {
   try {
     const cities = await Tour.distinct('city');

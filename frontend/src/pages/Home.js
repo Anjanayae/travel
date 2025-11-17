@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Home = () => {
+  const { user } = useAuth();
   const [featuredTours, setFeaturedTours] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ const Home = () => {
     try {
       const res = await fetch("http://localhost:5000/api/tours/categories");
       const data = await res.json();
-      setCategories(data.slice(0, 8)); // Show only 8 categories
+      setCategories(data.slice(0, 8));
     } catch (err) {
       console.error("Error fetching categories:", err);
     }
@@ -43,7 +45,8 @@ const Home = () => {
     'Religious': '🕉️',
     'Mountain': '⛰️',
     'Desert': '🏜️',
-    'Wildlife': '🦁'
+    'Wildlife': '🦁',
+    'Luxury': '💎'
   };
 
   const renderStars = (rating) => {
@@ -59,25 +62,70 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section with Login Options */}
       <section className="hero min-h-screen bg-gradient-to-br from-primary to-secondary relative overflow-hidden">
         <div className="hero-overlay bg-opacity-60"></div>
         <div className="hero-content text-center text-neutral-content relative z-10">
-          <div className="max-w-4xl">
+          <div className="max-w-5xl">
             <h1 className="mb-8 text-6xl font-bold leading-tight">
               Explore the World with
               <span className="block text-yellow-300">TourEase</span>
             </h1>
-            <p className="mb-8 text-xl leading-relaxed opacity-90">
+            <p className="mb-12 text-xl leading-relaxed opacity-90 max-w-3xl mx-auto">
               Discover and book amazing tours across the globe. From adventurous mountain treks 
               to serene beach getaways, we've got the perfect journey waiting for you.
             </p>
-            <div className="flex flex-col md:flex-row justify-center gap-4">
-              <Link to="/tours" className="btn btn-warning btn-lg text-black font-bold hover:btn-warning-focus">
-                🎯 Browse All Tours
-              </Link>
-              <Link to="/register" className="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
-                🚀 Join TourEase
+
+            {/* Login Options Section */}
+            {!user && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-6 text-yellow-300">Choose Your Account Type</h2>
+                <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                  {/* Traveller Login Card */}
+                  <div className="card bg-white text-gray-800 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
+                    <div className="card-body items-center text-center p-8">
+                      <div className="text-6xl mb-4">🎒</div>
+                      <h3 className="card-title text-2xl mb-2">I'm a Traveller</h3>
+                      <p className="text-gray-600 mb-6">
+                        Browse tours, book your adventures, and manage your trips
+                      </p>
+                      <div className="flex flex-col gap-3 w-full">
+                        <Link to="/login" className="btn btn-primary btn-lg w-full">
+                          🔑 Traveller Login
+                        </Link>
+                        <Link to="/register" className="btn btn-outline btn-primary w-full">
+                          ✨ Create Account
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Business Login Card */}
+                  <div className="card bg-white text-gray-800 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
+                    <div className="card-body items-center text-center p-8">
+                      <div className="text-6xl mb-4">🏢</div>
+                      <h3 className="card-title text-2xl mb-2">I'm a Business</h3>
+                      <p className="text-gray-600 mb-6">
+                        List your tours, manage bookings, and grow your business
+                      </p>
+                      <div className="flex flex-col gap-3 w-full">
+                        <Link to="/business/login" className="btn btn-secondary btn-lg w-full">
+                          🔑 Business Login
+                        </Link>
+                        <Link to="/business/register" className="btn btn-outline btn-secondary w-full">
+                          🚀 Register Business
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Browse Tours Button - Always Visible */}
+            <div className="mt-8">
+              <Link to="/tours" className="btn btn-warning btn-lg text-black font-bold hover:btn-warning-focus px-8">
+                🎯 Browse All Tours Without Login
               </Link>
             </div>
           </div>
@@ -109,9 +157,9 @@ const Home = () => {
               <div className="stat-desc">Countries to explore</div>
             </div>
             <div className="stat place-items-center">
-              <div className="stat-title">Expert Guides</div>
+              <div className="stat-title">Tour Operators</div>
               <div className="stat-value text-info">200+</div>
-              <div className="stat-desc">Professional tour guides</div>
+              <div className="stat-desc">Verified businesses</div>
             </div>
           </div>
         </div>
@@ -236,9 +284,9 @@ const Home = () => {
 
             <div className="text-center p-8">
               <div className="text-6xl mb-6">👥</div>
-              <h3 className="text-2xl font-bold mb-4 text-primary">Expert Guides</h3>
+              <h3 className="text-2xl font-bold mb-4 text-primary">Verified Operators</h3>
               <p className="text-gray-600 leading-relaxed">
-                All our tours are led by certified local guides who know the destinations inside and out.
+                All tour operators are verified and certified. Book with confidence from trusted businesses.
               </p>
             </div>
 
@@ -257,18 +305,30 @@ const Home = () => {
       <section className="py-20 bg-gradient-to-r from-primary to-secondary">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="text-white">
-            <h2 className="text-4xl font-bold mb-6">Ready for Your Next Adventure?</h2>
+            <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
             <p className="text-xl mb-8 opacity-90">
-              Join thousands of happy travelers who have discovered amazing destinations with TourEase.
-              Your perfect trip is just a click away!
+              Whether you're a traveler looking for your next adventure or a business ready to showcase your tours,
+              TourEase is the perfect platform for you!
             </p>
-            <div className="flex flex-col md:flex-row justify-center gap-4">
-              <Link to="/tours" className="btn btn-warning btn-lg text-black font-bold">
-                🎯 Start Exploring
-              </Link>
-              <Link to="/register" className="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
-                📝 Create Account
-              </Link>
+            <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <div className="card bg-white text-gray-800">
+                <div className="card-body items-center text-center">
+                  <div className="text-4xl mb-2">🎒</div>
+                  <h3 className="text-xl font-bold mb-4">For Travellers</h3>
+                  <Link to="/register" className="btn btn-primary w-full">
+                    Start Exploring
+                  </Link>
+                </div>
+              </div>
+              <div className="card bg-white text-gray-800">
+                <div className="card-body items-center text-center">
+                  <div className="text-4xl mb-2">🏢</div>
+                  <h3 className="text-xl font-bold mb-4">For Businesses</h3>
+                  <Link to="/business/register" className="btn btn-secondary w-full">
+                    List Your Tours
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>

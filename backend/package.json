@@ -9,7 +9,13 @@
     "seed": "node seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["travel", "booking", "tours", "nodejs", "express"],
+  "keywords": [
+    "travel",
+    "booking",
+    "tours",
+    "nodejs",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Travel booking web app backend with authentication, tour filtering, and reviews",
@@ -19,6 +25,7 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.0.0",
     "mongoose": "^8.16.2"
   },
   "devDependencies": {
